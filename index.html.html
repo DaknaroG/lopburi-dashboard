@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lopburi Agricultural Intelligence Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════ [CSS] → assets/css/style.css ══════ */
+:root{--h:60px;--sw:352px;--g9:#1b4332;--g7:#2f6f4e;--bg:#f6f8f6;--line:#e3e9e3;--tx:#1f2937;--mu:#6b7280;}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;font-family:"Noto Sans Thai",system-ui,sans-serif;color:var(--tx);background:var(--bg);overflow:hidden;}
+.hd{height:var(--h);display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--g9);color:#fff;position:relative;z-index:1200;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.hd h1{margin:0;font-size:15.5px;font-weight:700;line-height:1.2;} .hd small{font-size:11px;opacity:.75;}
+.ib{display:none;background:none;border:0;color:#fff;font-size:22px;cursor:pointer;}
+.tools{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.gb{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:7px 12px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.gb:hover{background:rgba(255,255,255,.22);} .gb.on{background:#d97706;border-color:#d97706;}
+.ysel{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:7px 8px;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;} .ysel option{color:#111;}
+.shell{display:flex;height:calc(100dvh - var(--h));}
+.sb{width:var(--sw);flex:0 0 var(--sw);background:#fff;border-right:1px solid var(--line);overflow-y:auto;padding:14px;transition:transform .25s;}
+.mw{flex:1;position:relative;min-width:0;} #map{position:absolute;inset:0;background:#e8eee9;}
+.tabs{display:flex;gap:6px;margin-bottom:14px;}
+.tb{flex:1;border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px;font-size:12.5px;font-family:inherit;font-weight:600;cursor:pointer;color:var(--mu);}
+.tb.on{background:var(--g7);color:#fff;border-color:var(--g7);}
+.pn{margin-bottom:18px;} .pg{display:none;} .pg.on{display:block;}
+.pt{font-size:13px;font-weight:700;color:var(--g7);margin:0 0 8px;display:flex;align-items:center;gap:8px;}
+.chip{background:#e8f5ec;color:var(--g7);border-radius:99px;padding:2px 8px;font-size:11px;font-weight:600;}
+.cf{display:flex;flex-wrap:wrap;gap:6px;}
+.cb{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:6px 11px;font-size:12px;font-family:inherit;cursor:pointer;color:var(--tx);display:flex;align-items:center;gap:6px;}
+.cb:hover{border-color:var(--g7);} .cb.on{color:#fff;font-weight:700;border-color:transparent;} .cb.on .dot{background:#fff!important;}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.st{background:#fafcfa;border:1px solid var(--line);border-radius:10px;padding:9px 10px;}
+.st b{display:block;font-size:16px;color:var(--g9);line-height:1.3;} .st span{font-size:10.5px;color:var(--mu);}
+.rk{list-style:none;margin:6px 0 0;padding:0;font-size:12px;}
+.rk li{display:flex;align-items:center;gap:7px;padding:3px 0;cursor:pointer;} .rk li:hover{color:var(--g7);font-weight:600;}
+.rk .bar{flex:1;height:7px;background:#eef3ef;border-radius:99px;overflow:hidden;} .rk .bar i{display:block;height:100%;border-radius:99px;}
+.rk .nm{width:70px;flex:0 0 70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rk .vl{width:56px;flex:0 0 56px;text-align:right;font-variant-numeric:tabular-nums;color:var(--mu);}
+.box{background:#fafcfa;border:1px solid var(--line);border-radius:10px;padding:12px;min-height:70px;}
+.ih{font-size:17px;font-weight:700;color:var(--g9);} .is{font-size:11px;color:var(--mu);margin-bottom:9px;}
+.it{width:100%;border-collapse:collapse;font-size:12.5px;}
+.it th{text-align:left;color:var(--mu);font-weight:400;padding:3px 8px 3px 0;white-space:nowrap;vertical-align:top;}
+.it td{padding:3px 0;font-weight:600;word-break:break-word;}
+.at{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:8px;}
+.at th{background:#eef5f0;color:var(--g7);font-size:10.5px;font-weight:700;padding:5px 6px;text-align:right;white-space:nowrap;}
+.at th:first-child{text-align:left;}
+.at td{padding:5px 6px;text-align:right;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;}
+.at td:first-child{text-align:left;font-weight:600;white-space:nowrap;}
+.at tr.sm td{border-top:2px solid var(--g7);font-weight:700;background:#fafcfa;}
+.cdot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.sec{font-size:11px;font-weight:700;color:var(--g7);margin:12px 0 0;padding-top:9px;border-top:1px dashed var(--line);display:flex;justify-content:space-between;align-items:center;}
+.sec em{font-style:normal;font-weight:400;color:var(--mu);font-size:10px;}
+/* weather */
+.wg{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;}
+.wc{border:1px solid var(--line);border-radius:10px;padding:8px 9px;background:#fff;}
+.wc .wl{font-size:10px;color:var(--mu);display:flex;align-items:center;gap:4px;}
+.wc .wv{font-size:17px;font-weight:700;color:var(--g9);line-height:1.35;}
+.wc .wv u{text-decoration:none;font-size:10.5px;font-weight:400;color:var(--mu);}
+.wc .ws{font-size:10px;color:var(--mu);}
+.wsrc{font-size:10.5px;color:var(--mu);margin-top:7px;line-height:1.55;}
+.badge{display:inline-block;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:700;}
+.b-ok{background:#dcfce7;color:#15803d;} .b-warn{background:#fef3c7;color:#b45309;} .b-info{background:#dbeafe;color:#1d4ed8;}
+.advz{margin-top:9px;font-size:11.5px;line-height:1.65;background:#f0f9f2;border-left:3px solid var(--g7);border-radius:0 8px 8px 0;padding:8px 10px;}
+.stl{list-style:none;margin:6px 0 0;padding:0;font-size:12px;max-height:190px;overflow-y:auto;}
+.stl li{border:1px solid var(--line);border-radius:9px;padding:7px 9px;margin-bottom:6px;cursor:pointer;background:#fff;}
+.stl li:hover{border-color:var(--g7);background:#f7fbf8;}
+.stl b{color:var(--g9);font-size:12.5px;} .stl span{color:var(--mu);font-size:10.5px;display:block;}
+.mu{color:var(--mu);font-size:13px;margin:0;} .er{color:#b91c1c;font-size:13px;margin:0;line-height:1.6;}
+.inp{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:8px;}
+.inp:focus{outline:2px solid #a7d8b8;border-color:var(--g7);}
+.al{list-style:none;margin:0;padding:0;max-height:240px;overflow-y:auto;}
+.ai{width:100%;text-align:left;background:none;border:0;border-radius:7px;padding:7px 10px;font-size:13px;font-family:inherit;cursor:pointer;color:var(--tx);display:flex;justify-content:space-between;gap:8px;}
+.ai:hover{background:#e8f5ec;color:var(--g9);font-weight:600;} .ai.on{background:#fff7ed;color:#b45309;font-weight:700;}
+.ai em{font-style:normal;color:var(--mu);font-size:11px;font-variant-numeric:tabular-nums;}
+.drop{border:1.5px dashed #b9cfc0;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:var(--mu);cursor:pointer;background:#fbfdfb;}
+.drop:hover{border-color:var(--g7);color:var(--g7);}
+.mini{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.mb{flex:1;min-width:120px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px;font-size:11.5px;font-family:inherit;cursor:pointer;color:var(--g7);font-weight:600;}
+.mb:hover{background:#e8f5ec;}
+.src{font-size:11px;color:var(--mu);margin-top:8px;line-height:1.6;}
+.tips{margin:0;padding-left:18px;font-size:12px;color:var(--mu);line-height:1.7;}
+.lg{position:absolute;left:12px;bottom:44px;z-index:900;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:11.5px;box-shadow:0 2px 10px rgba(0,0,0,.12);max-width:215px;}
+.lgt{font-weight:700;margin-bottom:6px;color:var(--g9);font-size:12px;}
+.lgr{display:flex;align-items:center;gap:8px;margin:3px 0;}
+.sw{width:16px;height:12px;border:2px solid;border-radius:3px;display:inline-block;flex:0 0 auto;}
+.sw2{width:18px;height:11px;border-radius:2px;display:inline-block;flex:0 0 auto;}
+.ld{position:absolute;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;gap:10px;background:rgba(255,255,255,.8);font-size:14px;font-weight:600;color:var(--g9);}
+.sp{width:20px;height:20px;border:3px solid #cfe6d7;border-top-color:var(--g7);border-radius:50%;animation:s .8s linear infinite;}
+@keyframes s{to{transform:rotate(360deg);}}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:1300;background:var(--g9);color:#fff;padding:9px 16px;border-radius:99px;font-size:12.5px;font-weight:600;box-shadow:0 3px 14px rgba(0,0,0,.25);display:none;max-width:80%;text-align:center;}
+.geo-tip{background:var(--g9);color:#fff;border:0;border-radius:6px;font-size:12px;font-weight:600;padding:5px 9px;box-shadow:0 2px 6px rgba(0,0,0,.25);line-height:1.5;}
+.geo-tip::before{border-top-color:var(--g9);} .geo-tip u{text-decoration:none;opacity:.85;font-weight:400;font-size:11px;}
+.nl{background:none;border:0;box-shadow:none;color:#14532d;font-size:11px;font-weight:700;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 4px #fff;padding:0;} .nl::before{display:none;}
+.wsta{background:#fff;border:2px solid #0284c7;border-radius:9px;padding:2px 6px;font-size:11px;font-weight:700;color:#075985;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2);text-align:center;}
+.wsta.demo{border-color:#94a3b8;color:#475569;}
+.leaflet-control-layers{border-radius:10px!important;font-size:13px;font-family:"Noto Sans Thai",sans-serif;}
+@media(max-width:768px){.ib{display:block;}.hd h1{font-size:13.5px;}.hd small{display:none;}.gb{font-size:12px;padding:6px 9px;}
+.sb{position:fixed;top:var(--h);left:0;bottom:0;width:90vw;max-width:356px;z-index:1100;transform:translateX(-100%);box-shadow:3px 0 18px rgba(0,0,0,.2);}
+.sb.open{transform:translateX(0);}.lg{left:8px;bottom:78px;font-size:10.5px;padding:8px 10px;}}
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <button id="btnMenu" class="ib">☰</button>
+  <div><h1>Lopburi Agricultural Intelligence</h1><small>เกษตร + สภาพอากาศรายตำบล — Phase 3</small></div>
+  <div class="tools">
+    <select id="yearSel" class="ysel" title="ปีข้อมูลเกษตร"></select>
+    <button id="btnLabel" class="gb">🏷 ป้ายชื่อ</button>
+    <button id="btnReset" class="gb">⟲ รีเซ็ต</button>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sb" id="sidebar">
+    <div class="tabs">
+      <button class="tb on" data-tab="agri">🌾 เกษตร</button>
+      <button class="tb" data-tab="weather">🌦 อากาศ</button>
+      <button class="tb" data-tab="data">📁 ข้อมูล</button>
+    </div>
+
+    <!-- ── ข้อมูลพื้นที่ (แสดงทุกแท็บ) ── -->
+    <section class="pn"><h2 class="pt">ข้อมูลพื้นที่ที่เลือก</h2>
+      <div id="infoPanel" class="box"><p class="mu">คลิกอำเภอ/ตำบลบนแผนที่เพื่อดูข้อมูล</p></div></section>
+
+    <!-- ── แท็บเกษตร ── -->
+    <div class="pg on" id="pg-agri">
+      <section class="pn"><h2 class="pt">🌾 ชนิดพืช</h2><div class="cf" id="cropFilter"></div></section>
+      <section class="pn"><h2 class="pt">สรุปภาพรวมจังหวัด <span id="sumYear" class="chip"></span></h2><div class="sg" id="statGrid"></div></section>
+      <section class="pn"><h2 class="pt">อันดับพื้นที่ปลูก (อำเภอ)</h2><ul class="rk" id="rankList"></ul></section>
+      <section class="pn"><h2 class="pt">รายชื่ออำเภอ <span id="ampCount" class="chip">โหลด...</span></h2>
+        <input type="search" id="searchInput" class="inp" placeholder="ค้นหาอำเภอ..."><ul class="al" id="ampList"></ul></section>
+    </div>
+
+    <!-- ── แท็บอากาศ ── -->
+    <div class="pg" id="pg-weather">
+      <section class="pn"><h2 class="pt">📤 อัปโหลดรายงานสภาพอากาศ</h2>
+        <div class="drop" id="wxDrop">ลากไฟล์ WeatherLink มาวาง หรือคลิกเลือก<br><b>XLSX หลายชีต · CSV · JSON</b></div>
+        <input type="file" id="wxFile" accept=".xlsx,.xls,.csv,.json" hidden multiple>
+        <div class="mini">
+          <button class="mb" id="btnWxTpl">⬇ เทมเพลต XLSX</button>
+          <button class="mb" id="btnWxExp">⬆ Export CSV</button>
+        </div>
+        <div class="src" id="wxSrc"></div>
+      </section>
+      <section class="pn"><h2 class="pt">🛰 สถานีตรวจอากาศ <span id="wxCount" class="chip"></span></h2>
+        <ul class="stl" id="wxList"></ul></section>
+      <section class="pn"><h2 class="pt">ภาพรวมสภาพอากาศ</h2><div class="sg" id="wxGrid"></div>
+        <div class="src">ค่ารวมจากทุกสถานีที่มีข้อมูลในระบบ</div></section>
+    </div>
+
+    <!-- ── แท็บข้อมูลเกษตร ── -->
+    <div class="pg" id="pg-data">
+      <section class="pn"><h2 class="pt">📁 นำเข้าข้อมูลเกษตร</h2>
+        <div class="drop" id="agDrop">ลากไฟล์มาวาง หรือคลิกเลือก<br><b>CSV · XLSX · JSON</b></div>
+        <input type="file" id="agFile" accept=".csv,.xlsx,.xls,.json" hidden>
+        <div class="mini"><button class="mb" id="btnAgTpl">⬇ เทมเพลต CSV</button><button class="mb" id="btnAgExp">⬆ Export CSV</button></div>
+        <div class="src" id="agSrc"></div>
+      </section>
+      <section class="pn"><h2 class="pt">คำแนะนำ</h2><ul class="tips">
+        <li>ไฟล์อากาศตั้งชื่อ <code>ACG_WeatherLink_04_LB_multisheet_YYYY-MM-DD.xlsx</code> ระบบจะแกะรหัสสถานี + วันที่ให้เอง</li>
+        <li>สถานีจะถูกผูกกับตำบลที่ใกล้ที่สุดอัตโนมัติ เมื่อเปิดชั้น “ขอบเขตตำบล”</li>
+        <li>ตำบลที่ไม่มีสถานีของตัวเอง จะอ้างอิงสถานีใกล้เคียงและระบุระยะห่าง</li>
+      </ul></section>
+    </div>
+  </aside>
+
+  <main class="mw">
+    <div id="map"></div>
+    <div id="legend" class="lg"></div>
+    <div id="toast" class="toast"></div>
+    <div id="loader" class="ld"><span class="sp"></span><span id="loaderText">กำลังโหลด...</span></div>
+  </main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+/* ══════ [1] CONFIG → js/config.js ══════ */
+var CONFIG={
+ province:{code:'16',nameTh:'ลพบุรี'},
+ map:{center:[15.05,100.85],zoom:9,minZoom:7,maxZoom:18,fitPadding:[24,24],focusMaxZoom:12},
+ basemaps:{
+  carto:{label:'แผนที่ทั่วไป',url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',attribution:'&copy; OSM, &copy; CARTO',subdomains:'abcd',maxZoom:20,default:true},
+  light:{label:'พื้นอ่อน',url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',attribution:'&copy; OSM, &copy; CARTO',subdomains:'abcd',maxZoom:20},
+  esri:{label:'ภาพดาวเทียม',url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',attribution:'Tiles &copy; Esri, Maxar',maxZoom:19},
+  topo:{label:'ภูมิประเทศ',url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',attribution:'Tiles &copy; Esri',maxZoom:19},
+  none:{label:'ไม่แสดงแผนที่ฐาน',url:'',attribution:''}},
+ levels:{
+  province:{id:'province',label:'ขอบเขตจังหวัด',
+   sources:['data/geo/provinces.geojson','https://cdn.jsdelivr.net/gh/chingchai/OpenGISData-Thailand@master/provinces.geojson','https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/master/provinces.geojson'],
+   keys:{code:['pro_code'],nameTh:['pro_th'],nameEn:['pro_en']},
+   style:{color:'#b45309',weight:3,opacity:1,fill:false,dashArray:'6 4'},interactive:false,visibleByDefault:true,label_:false,agri:false},
+  district:{id:'district',label:'ขอบเขตอำเภอ',
+   sources:['data/geo/districts.geojson','https://cdn.jsdelivr.net/gh/chingchai/OpenGISData-Thailand@master/districts.geojson','https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/master/districts.geojson'],
+   keys:{code:['amp_code'],nameTh:['amp_th'],nameEn:['amp_en']},
+   style:{color:'#2f6f4e',weight:1.4,opacity:.95,fillColor:'#9ad5ae',fillOpacity:.35},
+   hover:{weight:3,color:'#1b4332',fillOpacity:.75},active:{weight:3.5,color:'#d97706',fillOpacity:.82},
+   interactive:true,visibleByDefault:true,label_:true,agri:true},
+  subdistrict:{id:'subdistrict',label:'ขอบเขตตำบล',
+   sources:['data/geo/subdistricts.geojson','https://cdn.jsdelivr.net/gh/chingchai/OpenGISData-Thailand@master/subdistricts.geojson','https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/master/subdistricts.geojson'],
+   keys:{code:['tam_code'],nameTh:['tam_th'],nameEn:['tam_en'],parent:['amp_th'],parentCode:['amp_code']},
+   style:{color:'#0e7490',weight:.8,opacity:.9,fillColor:'#c7e9f1',fillOpacity:.3},
+   hover:{weight:2.2,color:'#155e75',fillOpacity:.72},active:{weight:3,color:'#be123c',fillOpacity:.82},
+   interactive:true,visibleByDefault:false,label_:false,agri:true}},
+ featureFlags:{agri:true,weather:true,ai:false}
+};
+
+/* ══════ [2] CROP MASTER ══════ */
+var CROPS=[
+ {key:'all',label:'ทั้งหมด',color:'#2f6f4e',ramp:['#f0f9f2','#d3ecdb','#a8dcbb','#74c597','#45a875','#2b8659','#14603c']},
+ {key:'sugarcane',label:'อ้อย',color:'#16a34a',ramp:['#f2fbf4','#d6f5de','#a8e9bd','#6fd694','#3cbd6f','#22a055','#0f7a3d'],ypr:11.5,rpf:22},
+ {key:'cassava',label:'มันสำปะหลัง',color:'#a16207',ramp:['#fdf8ec','#f7ecc9','#eeda98','#dfc263','#c9a53c','#a98322','#7d5f12'],ypr:3.6,rpf:18},
+ {key:'maize',label:'ข้าวโพดเลี้ยงสัตว์',color:'#d97706',ramp:['#fff8ec','#ffeccb','#fdd795','#f7bb5c','#e89a2f','#c97b16','#96590a'],ypr:.75,rpf:16},
+ {key:'asparagus',label:'หน่อไม้ฝรั่ง',color:'#0891b2',ramp:['#eefaff','#cdf0fb','#9adff4','#62c7e7','#35a9d1','#1c88b0','#0d6485'],ypr:1.9,rpf:4},
+ {key:'rice',label:'ข้าว',color:'#65a30d',ramp:['#f8fbea','#eaf4c8','#d5e995','#b9d75f','#9bc133','#7da520','#5a7a11'],ypr:.62,rpf:12},
+ {key:'vegetable',label:'พืชผัก',color:'#be185d',ramp:['#fdf2f7','#fbd9e8','#f6b0d0','#ec81b1','#dc5691','#bd3672','#8f2154'],ypr:2.4,rpf:5}];
+var CROP_ALIAS={'อ้อย':'sugarcane','อ้อยโรงงาน':'sugarcane','มันสำปะหลัง':'cassava','มัน':'cassava',
+ 'ข้าวโพดเลี้ยงสัตว์':'maize','ข้าวโพด':'maize','หน่อไม้ฝรั่ง':'asparagus','ข้าว':'rice','ข้าวนาปี':'rice',
+ 'พืชผัก':'vegetable','ผัก':'vegetable'};
+CROPS.forEach(function(c){if(c.key!=='all')CROP_ALIAS[c.key]=c.key;});
+
+var AGRI_SEED={'1601':{name:'เมืองลพบุรี',a:[18000,9000,12000,800,45000,2500]},'1602':{name:'พัฒนานิคม',a:[42000,21000,28000,1500,15000,1800]},
+ '1603':{name:'โคกสำโรง',a:[55000,38000,34000,2400,22000,2100]},'1604':{name:'ชัยบาดาล',a:[68000,52000,45000,900,12000,1600]},
+ '1605':{name:'ท่าวุ้ง',a:[3500,1200,2600,300,62000,3400]},'1606':{name:'บ้านหมี่',a:[12000,6500,9500,1100,58000,2900]},
+ '1607':{name:'ท่าหลวง',a:[39000,31000,26000,600,7000,900]},'1608':{name:'สระโบสถ์',a:[33000,27000,21000,1700,5500,700]},
+ '1609':{name:'โคกเจริญ',a:[29000,24000,19000,2100,4800,650]},'1610':{name:'ลำสนธิ',a:[46000,36000,30000,500,3900,550]},
+ '1611':{name:'หนองม่วง',a:[51000,33000,37000,3100,9200,1200]}};
+var SEED_YEARS=[2566,2567,2568];
+
+/* ══════ [3] WEATHER MODULE → js/weatherData.js ══════
+   ฟอร์แมตอ้างอิง: ACG_WeatherLink_<NN>_<XX>_multisheet_<YYYY-MM-DD>.xlsx
+   ชีต: Temperature | Humidity | Rain | Wind Speed
+   คอลัมน์: เวลา, ค่า (หน่วย)  [+ ทิศทางลม, องศา (°) สำหรับลม] */
+var WX_METRIC={
+ temp:{key:'temp',label:'อุณหภูมิ',unit:'°C',icon:'🌡',color:'#dc2626',agg:'avg',dec:1,
+   sheet:['temperature','temp','อุณหภูมิ'],col:['ค่า (°c)','ค่า(°c)','ค่า','value','temp','temperature']},
+ humidity:{key:'humidity',label:'ความชื้นสัมพัทธ์',unit:'%',icon:'💧',color:'#0284c7',agg:'avg',dec:1,
+   sheet:['humidity','rh','ความชื้น'],col:['ค่า (%)','ค่า(%)','ค่า','value','humidity','rh']},
+ rain:{key:'rain',label:'ปริมาณฝนสะสม',unit:'mm',icon:'🌧',color:'#1d4ed8',agg:'sum',dec:2,
+   sheet:['rain','rainfall','precipitation','ฝน','ปริมาณน้ำฝน'],col:['ค่า (mm)','ค่า(mm)','ค่า','value','rain']},
+ wind:{key:'wind',label:'ความเร็วลมสูงสุด',unit:'m/s',icon:'🌬',color:'#0f766e',agg:'max',dec:2,
+   sheet:['wind speed','windspeed','wind','ลม','ความเร็วลม'],col:['ค่า (m/s)','ค่า(m/s)','ค่า','value','wind']}
+};
+var WX_KEYS=Object.keys(WX_METRIC);
+var DIR_TH={N:'เหนือ',NNE:'เหนือค่อนไปตะวันออก',NE:'ตะวันออกเฉียงเหนือ',ENE:'ตะวันออกค่อนไปเหนือ',E:'ตะวันออก',
+ ESE:'ตะวันออกค่อนไปใต้',SE:'ตะวันออกเฉียงใต้',SSE:'ใต้ค่อนไปตะวันออก',S:'ใต้',SSW:'ใต้ค่อนไปตะวันตก',
+ SW:'ตะวันตกเฉียงใต้',WSW:'ตะวันตกค่อนไปใต้',W:'ตะวันตก',WNW:'ตะวันตกค่อนไปเหนือ',NW:'ตะวันตกเฉียงเหนือ',NNW:'เหนือค่อนไปตะวันตก'};
+
+/* ── ข้อมูลจริงจากไฟล์ที่อัปโหลด: สถานี LB-04 วันที่ 2026-09-15 ── */
+var WX_SEED={
+ id:'LB-04',name:'สถานี ACG WeatherLink 04 (ลพบุรี)',lat:14.7995,lng:100.6534,date:'2026-09-15',
+ t0:'2026-09-15T00:45',stepMin:60,
+ temp:[24.944445,25.055555,24.944445,24.944445,24.944445,25,25.055555,25.444445,26.666666,28.38889],
+ humidity:[94,94.3,94.4,94.7,94.8,94.9,95.1,95.1,94.2,87.1],
+ rain:[0.2,0.2,0,0.2,0.2,0,0.2,0,0.2,0],
+ wind:[0,0,0,0,0,0,0,0,0,0.62],
+ dir:['N','N','N','N','N','N','N','N','N','W'],
+ deg:[0,0,0,0,0,0,0,0,0,281]
+};
+
+var WeatherData=(function(){
+  var stations={},order=[];
+  function norm(s){return String(s||'').toLowerCase().trim().replace(/[\s_\-().]/g,'');}
+  function matchMetric(sheetName){
+    var n=norm(sheetName);
+    for(var i=0;i<WX_KEYS.length;i++){
+      var m=WX_METRIC[WX_KEYS[i]];
+      for(var j=0;j<m.sheet.length;j++) if(n.indexOf(norm(m.sheet[j]))>-1) return m.key;
+    }
+    return null;
+  }
+  function findCol(row,cands){
+    var lk={};Object.keys(row).forEach(function(k){lk[norm(k)]=k;});
+    for(var i=0;i<cands.length;i++){var k=lk[norm(cands[i])];if(k!=null)return k;}
+    // fallback: คอลัมน์ตัวเลขแรกที่ไม่ใช่เวลา
+    var ks=Object.keys(row);
+    for(var x=0;x<ks.length;x++){var nk=norm(ks[x]);
+      if(nk.indexOf('เวลา')>-1||nk.indexOf('time')>-1||nk.indexOf('date')>-1)continue;
+      if(!isNaN(parseFloat(row[ks[x]])))return ks[x];}
+    return null;
+  }
+  function findTimeCol(row){
+    var ks=Object.keys(row);
+    for(var i=0;i<ks.length;i++){var n=norm(ks[i]);
+      if(n.indexOf('เวลา')>-1||n.indexOf('time')>-1||n.indexOf('date')>-1||n.indexOf('วันที่')>-1)return ks[i];}
+    return ks[0];
+  }
+  function parseTime(v){
+    if(v==null||v==='')return null;
+    if(typeof v==='number'){var d=new Date(Date.UTC(1899,11,30)+v*864e5);return isNaN(d)?null:d;}
+    var s=String(v).trim();
+    var m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[ T]+(\d{1,2}):(\d{2})/);       // MM/DD/YYYY HH:mm
+    if(m)return new Date(+m[3],+m[1]-1,+m[2],+m[4],+m[5]);
+    m=s.match(/^(\d{4})-(\d{2})-(\d{2})[ T]+(\d{1,2}):(\d{2})/);                 // ISO
+    if(m)return new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]);
+    var d2=new Date(s);return isNaN(d2)?null:d2;
+  }
+  function num(v){if(v==null||v==='')return null;var n=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isNaN(n)?null:n;}
+  function detectStation(fileName){
+    var base=String(fileName||'').replace(/\.[^.]+$/,'');
+    var m=base.match(/weatherlink[_\-]?(\w+?)[_\-](\w{2})[_\-]?multisheet/i);
+    if(m)return {id:(m[2]+'-'+m[1]).toUpperCase(),label:'WeatherLink '+m[1]+' ('+m[2]+')'};
+    m=base.match(/(\d{2})[_\-]([A-Za-z]{2})/);
+    if(m)return {id:(m[2]+'-'+m[1]).toUpperCase(),label:'สถานี '+m[2]+'-'+m[1]};
+    return {id:base.slice(0,24).toUpperCase()||'STATION',label:base};
+  }
+  function detectDate(fileName){
+    var m=String(fileName||'').match(/(\d{4})[-_](\d{2})[-_](\d{2})/);
+    return m?m[1]+'-'+m[2]+'-'+m[3]:null;
+  }
+
+  function ensure(id,init){
+    if(!stations[id]){stations[id]=Object.assign({id:id,name:id,lat:null,lng:null,tamCode:null,tamName:null,
+      ampName:null,series:{},files:[],demo:false},init||{});order.push(id);}
+    else if(init)Object.keys(init).forEach(function(k){if(init[k]!=null)stations[id][k]=init[k];});
+    return stations[id];
+  }
+
+  /** อ่าน workbook หลายชีตตามฟอร์แมตต้นแบบ */
+  function ingestWorkbook(wb,fileName){
+    var st=detectStation(fileName),date=detectDate(fileName);
+    var s=ensure(st.id,{name:st.label}),found=0,rows=0;
+    wb.SheetNames.forEach(function(sn){
+      var mk=matchMetric(sn);if(!mk)return;
+      var arr=XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:null});if(!arr.length)return;
+      var tc=findTimeCol(arr[0]),vc=findCol(arr[0],WX_METRIC[mk].col);if(!vc)return;
+      var dirC=null,degC=null;
+      Object.keys(arr[0]).forEach(function(k){var n=norm(k);
+        if(n.indexOf('ทิศทาง')>-1||n.indexOf('direction')>-1)dirC=k;
+        if(n.indexOf('องศา')>-1||n.indexOf('degree')>-1||n==='deg')degC=k;});
+      var out=[];
+      arr.forEach(function(r){
+        var t=parseTime(r[tc]),v=num(r[vc]);if(t==null||v==null)return;
+        var o={t:t.getTime(),v:v};
+        if(dirC&&r[dirC])o.dir=String(r[dirC]).trim().toUpperCase();
+        if(degC&&r[degC]!=null)o.deg=num(r[degC]);
+        out.push(o);
+      });
+      if(!out.length)return;
+      out.sort(function(a,b){return a.t-b.t;});
+      s.series[mk]=(s.series[mk]||[]).filter(function(p){    // merge แทนที่ช่วงซ้ำ
+        return !out.some(function(q){return q.t===p.t;});
+      }).concat(out).sort(function(a,b){return a.t-b.t;});
+      found++;rows+=out.length;
+    });
+    if(!found)throw new Error('ไม่พบชีตที่รองรับ (Temperature / Humidity / Rain / Wind Speed)');
+    if(date)s.date=date;
+    s.demo=false;s.files.push(fileName);
+    return {station:s,metrics:found,rows:rows};
+  }
+
+  /** CSV/JSON แนวยาว: station,time,metric,value[,dir,deg] */
+  function ingestRows(rows,fileName){
+    if(!rows.length)throw new Error('ไฟล์ว่าง');
+    var st=detectStation(fileName),n=0;
+    rows.forEach(function(r){
+      var lk={};Object.keys(r).forEach(function(k){lk[norm(k)]=r[k];});
+      var sid=String(lk['station']||lk['stationid']||lk['สถานี']||st.id).toUpperCase();
+      var mk=lk['metric']||lk['ชนิดข้อมูล'];
+      mk=mk?matchMetric(mk):null; if(!mk)return;
+      var t=parseTime(lk['time']||lk['เวลา']||lk['datetime']),v=num(lk['value']||lk['ค่า']);
+      if(t==null||v==null)return;
+      var s=ensure(sid,{name:st.label}),o={t:t.getTime(),v:v};
+      if(lk['dir']||lk['ทิศทางลม'])o.dir=String(lk['dir']||lk['ทิศทางลม']).toUpperCase();
+      if(lk['deg']!=null||lk['องศา (°)']!=null)o.deg=num(lk['deg']!=null?lk['deg']:lk['องศา (°)']);
+      (s.series[mk]=s.series[mk]||[]).push(o);s.demo=false;n++;
+    });
+    if(!n)throw new Error('ไม่พบแถวที่ใช้ได้ (ต้องมีคอลัมน์ metric, time, value)');
+    order.forEach(function(id){WX_KEYS.forEach(function(k){
+      if(stations[id].series[k])stations[id].series[k].sort(function(a,b){return a.t-b.t;});});});
+    return {metrics:'-',rows:n};
+  }
+
+  function seed(){
+    var t0=new Date(WX_SEED.t0).getTime(),sp=WX_SEED.stepMin*6e4;
+    var s=ensure(WX_SEED.id,{name:WX_SEED.name,lat:WX_SEED.lat,lng:WX_SEED.lng,date:WX_SEED.date});
+    WX_KEYS.forEach(function(k){
+      s.series[k]=WX_SEED[k].map(function(v,i){
+        var o={t:t0+i*sp,v:v};
+        if(k==='wind'){o.dir=WX_SEED.dir[i];o.deg=WX_SEED.deg[i];}
+        return o;});
+    });
+    s.files=['ACG_WeatherLink_04_LB_multisheet_2026-09-15.xlsx'];
+    /* สถานีจำลองเพื่อทดสอบการอ้างอิงข้ามพื้นที่ (ลบได้เมื่อมีข้อมูลจริง) */
+    [['LB-11','พัฒนานิคม',14.9167,100.9167,1.4,-3.1],['LB-21','ชัยบาดาล',15.2016,101.1337,2.2,-5.4],
+     ['LB-31','ท่าวุ้ง',14.7333,100.4333,-.6,1.8],['LB-41','หนองม่วง',15.2000,100.7500,1.0,-2.2]]
+    .forEach(function(d){
+      var ds=ensure(d[0],{name:'สถานีจำลอง '+d[1],lat:d[2],lng:d[3],date:WX_SEED.date,demo:true});
+      WX_KEYS.forEach(function(k){
+        ds.series[k]=WX_SEED[k].map(function(v,i){
+          var o={t:t0+i*sp};
+          o.v=k==='temp'?+(v+d[4]).toFixed(2):k==='humidity'?Math.max(40,Math.min(100,+(v+d[5]).toFixed(1)))
+             :k==='rain'?+(v*(1+d[4]/4)).toFixed(2):+(v+Math.abs(d[4])*.3).toFixed(2);
+          if(k==='wind'){o.dir=WX_SEED.dir[i];o.deg=WX_SEED.deg[i];}
+          return o;});
+      });
+    });
+  }
+
+  /* ---- สรุปค่า ---- */
+  function summarize(st){
+    if(!st)return null;
+    var o={id:st.id,name:st.name,demo:!!st.demo,date:st.date,metrics:{}};
+    WX_KEYS.forEach(function(k){
+      var a=st.series[k]||[];if(!a.length)return;
+      var vs=a.map(function(p){return p.v;});
+      var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs);
+      var sm=vs.reduce(function(x,y){return x+y;},0);
+      o.metrics[k]={min:mn,max:mx,avg:sm/vs.length,sum:sm,last:vs[vs.length-1],
+        n:vs.length,series:vs,t0:a[0].t,t1:a[a.length-1].t};
+      if(k==='wind'){
+        var best=a.reduce(function(p,c){return c.v>=p.v?c:p;},a[0]);
+        o.metrics.wind.dir=best.dir||a[a.length-1].dir||'-';
+        o.metrics.wind.deg=best.deg!=null?best.deg:null;
+      }
+    });
+    return Object.keys(o.metrics).length?o:null;
+  }
+  function dist(a,b,c,d){var R=6371,p=Math.PI/180;
+    var x=(c-a)*p,y=(d-b)*p,h=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)*Math.sin(y/2);
+    return R*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));}
+  function list(){return order.map(function(i){return stations[i];}).filter(function(s){return s.lat!=null;});}
+  function byTam(code){var r=null;list().forEach(function(s){if(String(s.tamCode)===String(code))r=s;});return r;}
+  function nearest(lat,lng){
+    var best=null,bd=1e9;
+    list().forEach(function(s){var d=dist(lat,lng,s.lat,s.lng);if(d<bd){bd=d;best=s;}});
+    return best?{station:best,km:bd}:null;
+  }
+  /** ผูกสถานีกับตำบลที่ใกล้ที่สุด (เรียกเมื่อชั้นตำบลโหลดเสร็จ) */
+  function bindTambons(features){
+    list().forEach(function(s){
+      var best=null,bd=1e9;
+      features.forEach(function(f){
+        if(!f.center)return;
+        var d=dist(s.lat,s.lng,f.center.lat,f.center.lng);
+        if(d<bd){bd=d;best=f;}});
+      if(best){s.tamCode=String(best.code);s.tamName=best.nameTh;s.ampName=best.parent;s.bindKm=bd;}
+    });
+  }
+  function provinceSummary(){
+    var ss=list().map(summarize).filter(Boolean);if(!ss.length)return null;
+    var o={temp:[],humidity:[],rain:[],wind:[]};
+    ss.forEach(function(s){WX_KEYS.forEach(function(k){if(s.metrics[k])o[k].push(s.metrics[k]);});});
+    return {n:ss.length,
+      temp:o.temp.length?o.temp.reduce(function(a,m){return a+m.avg;},0)/o.temp.length:null,
+      humidity:o.humidity.length?o.humidity.reduce(function(a,m){return a+m.avg;},0)/o.humidity.length:null,
+      rain:o.rain.length?o.rain.reduce(function(a,m){return a+m.sum;},0)/o.rain.length:null,
+      wind:o.wind.length?Math.max.apply(null,o.wind.map(function(m){return m.max;})):null};
+  }
+  function toRows(){
+    var out=[];
+    list().forEach(function(s){WX_KEYS.forEach(function(k){
+      (s.series[k]||[]).forEach(function(p){
+        out.push({station:s.id,stationName:s.name,tamCode:s.tamCode||'',tamName:s.tamName||'',
+          metric:k,time:new Date(p.t).toISOString().slice(0,16).replace('T',' '),
+          value:p.v,dir:p.dir||'',deg:p.deg!=null?p.deg:''});});});});
+    return out;
+  }
+  function clearAll(){stations={};order=[];}
+  return {seed:seed,ingestWorkbook:ingestWorkbook,ingestRows:ingestRows,summarize:summarize,
+    list:list,byTam:byTam,nearest:nearest,bindTambons:bindTambons,provinceSummary:provinceSummary,
+    toRows:toRows,clearAll:clearAll,detectStation:detectStation,dist:dist};
+})();
+
+/* ══════ [4] AGRI DATA ENGINE → js/agriData.js ══════ */
+var AgriData=(function(){
+  var rec=[],ix={},amps={},tams={},yrs={},source='ข้อมูลตัวอย่าง (จำลอง)';
+  var meta={};CROPS.forEach(function(c){if(c.key!=='all')meta[c.key]=c;});
+  var keys=Object.keys(meta);
+  function hash(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h);}
+  function reset(){rec=[];ix={};amps={};tams={};yrs={};}
+  function idx(k,r){(ix[k]=ix[k]||[]).push(r);}
+  function push(r){
+    r.year=Number(r.year);r.ampCode=String(r.ampCode);
+    r.areaRai=+r.areaRai||0;r.farmers=+r.farmers||0;r.yieldTon=+r.yieldTon||0;
+    rec.push(r);yrs[r.year]=1;amps[r.ampCode]=r.ampName||amps[r.ampCode]||r.ampCode;
+    idx('A|'+r.year+'|'+r.ampCode+'|'+r.crop,r);
+    if(r.tamCode){r.tamCode=String(r.tamCode);tams[r.tamCode]=r.tamName||r.tamCode;
+      idx('T|'+r.year+'|'+r.tamCode+'|'+r.crop,r);}
+  }
+  function buildSeed(){
+    reset();source='ข้อมูลตัวอย่าง (จำลอง)';
+    Object.keys(AGRI_SEED).forEach(function(ac){var s=AGRI_SEED[ac];
+      SEED_YEARS.forEach(function(y,yi){keys.forEach(function(ck,ci){
+        var m=meta[ck],f=1+((hash(ac+ck+y)%17)-8)/100+yi*.025,area=Math.round(s.a[ci]*f);
+        push({year:y,ampCode:ac,ampName:s.name,tamCode:null,tamName:null,crop:ck,areaRai:area,
+          farmers:Math.max(1,Math.round(area/m.rpf)),yieldTon:Math.round(area*m.ypr)});});});});
+  }
+  function query(q){var lv=q.tamCode?'T':'A',code=q.tamCode||q.ampCode;if(!code)return[];
+    if(q.crop&&q.crop!=='all')return ix[lv+'|'+q.year+'|'+code+'|'+q.crop]||[];
+    var o=[];keys.forEach(function(ck){o=o.concat(ix[lv+'|'+q.year+'|'+code+'|'+ck]||[]);});return o;}
+  function sum(rs){return rs.reduce(function(a,r){a.areaRai+=r.areaRai;a.farmers+=r.farmers;a.yieldTon+=r.yieldTon;return a;},{areaRai:0,farmers:0,yieldTon:0});}
+  function value(q){return sum(query(q)).areaRai;}
+  function breakdown(q){return keys.map(function(ck){
+availability:    var s=sum(query({year:q.year,ampCode:q.ampCode,tamCode:q.tamCode,crop:ck}));
+      return {crop:ck,label:meta[ck].label,color:meta[ck].color,areaRai:s.areaRai,farmers:s.farmers,yieldTon:s.yieldTon};})
+    .filter(function(x){return x.areaRai>0;}).sort(function(a,b){return b.areaRai-a.areaRai;});}
+  function getYears(){var y=Object.keys(yrs).map(Number).sort(function(a,b){return a-b;});return y.length?y:SEED_YEARS;}
+  function getAmps(){return Object.keys(amps).sort().map(function(c){return{code:c,name:amps[c]};});}
+  function ranking(y,c){return getAmps().map(function(a){return{code:a.code,name:a.name,value:value({year:y,ampCode:a.code,crop:c})};})
+    .sort(function(a,b){return b.value-a.value;});}
+  function tamValues(y,c){return Object.keys(tams).map(function(t){return value({year:y,tamCode:t,crop:c});});}
+  function provinceSummary(y,c){var o={areaRai:0,farmers:0,yieldTon:0};
+    getAmps().forEach(function(a){var s=sum(query({year:y,ampCode:a.code,crop:c}));
+      o.areaRai+=s.areaRai;o.farmers+=s.farmers;o.yieldTon+=s.yieldTon;});return o;}
+  function deriveSubdistricts(fs){
+    var byAmp={};fs.forEach(function(f){var a=String(f.parentCode||'').slice(0,4)||String(f.code).slice(0,4);
+      (byAmp[a]=byAmp[a]||[]).push(f);});
+    Object.keys(byAmp).forEach(function(ac){
+      if(!amps[ac])return;var list=byAmp[ac];
+      if(list.some(function(f){return tams[String(f.code)];}))return;
+      var w=list.map(function(f){return .5+(hash(String(f.code))%100)/100;});
+      var tot=w.reduce(function(a,b){return a+b;},0);
+      getYears().forEach(function(y){keys.forEach(function(ck){
+        var p=sum(query({year:y,ampCode:ac,crop:ck}));if(!p.areaRai)return;
+        list.forEach(function(f,i){var m=meta[ck],area=Math.round(p.areaRai*w[i]/tot);if(area<=0)return;
+          push({year:y,ampCode:ac,ampName:amps[ac],tamCode:String(f.code),tamName:f.nameTh,crop:ck,
+            areaRai:area,farmers:Math.max(1,Math.round(area/m.rpf)),yieldTon:Math.round(area*m.ypr)});});});});
+    });
+  }
+  var ALIAS={year:['year','ปี','ปีข้อมูล','yr'],ampCode:['ampcode','amp_code','รหัสอำเภอ'],
+    ampName:['ampname','amp_th','อำเภอ','ชื่ออำเภอ'],tamCode:['tamcode','tam_code','รหัสตำบล'],
+    tamName:['tamname','tam_th','ตำบล','ชื่อตำบล'],crop:['crop','ชนิดพืช','พืช'],
+    areaRai:['arearai','area_rai','พื้นที่ปลูก','พื้นที่'],farmers:['farmers','จำนวนเกษตรกร','เกษตรกร'],
+    yieldTon:['yieldton','yield_ton','ผลผลิต','yield']};
+  var N2C={};Object.keys(AGRI_SEED).forEach(function(c){N2C[AGRI_SEED[c].name]=c;});
+  function nm(s){return String(s||'').toLowerCase().replace(/[\s_\-().]/g,'');}
+  function mapRow(row){
+    var o={},lk={};Object.keys(row).forEach(function(k){lk[nm(k)]=row[k];});
+    Object.keys(ALIAS).forEach(function(f){for(var i=0;i<ALIAS[f].length;i++){
+      var v=lk[nm(ALIAS[f][i])];if(v!=null&&v!==''){o[f]=v;break;}}});
+    var ck=CROP_ALIAS[String(o.crop||'').trim()];if(!ck)return null;
+    var ac=o.ampCode?String(o.ampCode).trim():N2C[String(o.ampName||'').trim()];
+    if(!ac&&o.tamCode)ac=String(o.tamCode).slice(0,4);
+    if(!ac)return null;
+    var n=function(v){return Number(String(v==null?0:v).replace(/[^0-9.\-]/g,''))||0;};
+    return {year:Number(o.year)||getYears()[0],ampCode:ac,ampName:o.ampName||(AGRI_SEED[ac]&&AGRI_SEED[ac].name)||ac,
+      tamCode:o.tamCode?String(o.tamCode).trim():null,tamName:o.tamName||null,crop:ck,
+      areaRai:n(o.areaRai),farmers:n(o.farmers),yieldTon:n(o.yieldTon)};
+  }
+  function importRows(rows,label){
+    var ok=0,skip=0,tmp=[];
+    rows.forEach(function(r){var m=mapRow(r);if(m){tmp.push(m);ok++;}else skip++;});
+    if(!ok)throw new Error('ไม่พบแถวที่ใช้ได้');
+    reset();tmp.forEach(push);source=label+' · '+ok+' แถว';return {ok:ok,skip:skip};
+  }
+  function toRows(){return rec.map(function(r){return{year:r.year,ampCode:r.ampCode,ampName:r.ampName,
+    tamCode:r.tamCode||'',tamName:r.tamName||'',crop:meta[r.crop].label,areaRai:r.areaRai,
+    farmers:r.farmers,yieldTon:r.yieldTon};});}
+  return {buildSeed:buildSeed,query:query,value:value,breakdown:breakdown,ranking:ranking,tamValues:tamValues,
+    provinceSummary:provinceSummary,deriveSubdistricts:deriveSubdistricts,importRows:importRows,toRows:toRows,
+    getYears:getYears,getAmps:getAmps,meta:meta,getSource:function(){return source;}};
+})();
+
+/* ══════ [5] LOADER / UTIL ══════ */
+var DataLoader=(function(){
+  var cache={};
+  async function loadFirstAvailable(urls){
+    var k=urls.join('|');if(cache[k])return cache[k];
+    var t=(async function(){var e;
+      for(var i=0;i<urls.length;i++){
+        try{var r=await fetch(urls[i]);if(!r.ok)throw new Error('HTTP '+r.status);
+          var j=await r.json();console.info('[OK]',urls[i]);return j;}catch(x){e=x;console.warn('[SKIP]',urls[i],x.message);}}
+      throw new Error(e?e.message:'ไม่พบแหล่งข้อมูล');})();
+    cache[k]=t;t.catch(function(){delete cache[k];});return t;}
+  function filterProvince(g,code,n){return {type:'FeatureCollection',features:(g.features||[]).filter(function(f){
+    var p=f.properties||{},c=String(p.pro_code||p.PROV_CODE||p.ADM1_PCODE||'').replace(/^TH/,''),
+        nn=String(p.pro_th||p.PROV_NAMT||p.ADM1_TH||'');
+    return c===String(code)||Number(c)===Number(code)||nn.indexOf(n)>-1;})};}
+  function pick(p,c,fb){for(var i=0;i<(c||[]).length;i++)if(p&&p[c[i]]!=null&&p[c[i]]!=='')return p[c[i]];
+    return fb!==undefined?fb:'-';}
+  function readFile(file){
+    return new Promise(function(res,rej){
+      var ext=file.name.split('.').pop().toLowerCase(),rd=new FileReader();rd.onerror=rej;
+      if(ext==='csv'){rd.onload=function(e){res({kind:'rows',data:Papa.parse(e.target.result,{header:true,skipEmptyLines:true}).data});};rd.readAsText(file,'UTF-8');}
+      else if(ext==='xlsx'||ext==='xls'){rd.onload=function(e){
+        res({kind:'wb',data:XLSX.read(new Uint8Array(e.target.result),{type:'array'})});};rd.readAsArrayBuffer(file);}
+      else if(ext==='json'){rd.onload=function(e){var j=JSON.parse(e.target.result);res({kind:'rows',data:Array.isArray(j)?j:(j.data||[])});};rd.readAsText(file,'UTF-8');}
+      else rej(new Error('รองรับเฉพาะ XLSX / CSV / JSON'));});
+  }
+  return {loadFirstAvailable:loadFirstAvailable,filterProvince:filterProvince,pick:pick,readFile:readFile};
+})();
+var fmt=function(n){return(n==null||isNaN(n))?'-':Number(n).toLocaleString('th-TH');};
+var fmtK=function(n){return n>=1e6?(n/1e6).toFixed(2)+' ล้าน':fmt(Math.round(n));};
+var f1=function(n,d){return n==null||isNaN(n)?'-':Number(n).toFixed(d==null?1:d);};
+function spark(vals,color,w,h,bars){
+  if(!vals||!vals.length)return '';
+  w=w||128;h=h||26;
+  var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),rg=(mx-mn)||1;
+  if(bars){
+    var bw=w/vals.length;
+    return '<svg width="'+w+'" height="'+h+'">'+vals.map(function(v,i){
+      var bh=mx?Math.max(1,v/mx*(h-3)):1;
+      return '<rect x="'+(i*bw+.6).toFixed(1)+'" y="'+(h-bh).toFixed(1)+'" width="'+(bw-1.2).toFixed(1)+
+             '" height="'+bh.toFixed(1)+'" fill="'+color+'" opacity="'+(v?.85:.18)+'" rx="1"/>';}).join('')+'</svg>';
+  }
+  var pts=vals.map(function(v,i){return [i/((vals.length-1)||1)*(w-2)+1,h-2-((v-mn)/rg)*(h-5)];});
+  return '<svg width="'+w+'" height="'+h+'"><polyline points="'+pts.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ')+
+    '" fill="none" stroke="'+color+'" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>'+
+    '<circle cx="'+pts[pts.length-1][0].toFixed(1)+'" cy="'+pts[pts.length-1][1].toFixed(1)+'" r="2.4" fill="'+color+'"/></svg>';
+}
+
+/* ══════ [6] MAP CORE ══════ */
+var MapCore=(function(){
+  var map,ctrl,BLANK='data:image/gif;base64,R0lGODlhAQABAIAAAO/v7wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
+  function init(id){
+    var c=CONFIG.map;
+    map=L.map(id,{center:c.center,zoom:c.zoom,minZoom:c.minZoom,maxZoom:c.maxZoom,zoomControl:false,preferCanvas:true});
+    L.control.zoom({position:'bottomright'}).addTo(map);
+    L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
+    var base={},def=null;
+    Object.keys(CONFIG.basemaps).forEach(function(k){var b=CONFIG.basemaps[k];
+      var tl=b.url?L.tileLayer(b.url,{attribution:b.attribution,maxZoom:b.maxZoom||c.maxZoom,
+        subdomains:b.subdomains||'abc',crossOrigin:true,errorTileUrl:BLANK}):L.tileLayer('',{attribution:''});
+      base[b.label]=tl;if(b.default)def=tl;});
+    (def||base[Object.keys(base)[0]]).addTo(map);
+    ctrl=L.control.layers(base,{},{position:'topright',collapsed:window.innerWidth<768}).addTo(map);
+    return map;}
+  return {init:init,getMap:function(){return map;},addOverlay:function(l,n){ctrl.addOverlay(l,n);},
+    focusBounds:function(b){if(b&&b.isValid())map.fitBounds(b,{padding:CONFIG.map.fitPadding,maxZoom:CONFIG.map.focusMaxZoom});}};
+})();
+
+/* ══════ [7] ADMIN LAYER FACTORY ══════ */
+function createAdminLayer(lvKey,H){
+  var cfg=CONFIG.levels[lvKey];H=H||{};
+  var loaded=false,loading=false,sel=null,theme=null,labels=L.layerGroup();
+  function read(f){var p=f.properties||{};
+    return {level:lvKey,levelLabel:cfg.label,code:DataLoader.pick(p,cfg.keys.code),
+      nameTh:DataLoader.pick(p,cfg.keys.nameTh),nameEn:DataLoader.pick(p,cfg.keys.nameEn),
+      parent:cfg.keys.parent?DataLoader.pick(p,cfg.keys.parent):null,
+      parentCode:cfg.keys.parentCode?DataLoader.pick(p,cfg.keys.parentCode,''):null,props:p};}
+  function styleFor(f){var s=Object.assign({},cfg.style);if(theme){var t=theme(read(f));if(t)s=Object.assign(s,t);}return s;}
+  function tip(i){return H.tooltip?H.tooltip(i):i.nameTh;}
+  var g=L.geoJSON(null,{interactive:cfg.interactive,style:styleFor,
+    onEachFeature:function(f,l){if(!cfg.interactive)return;
+      l.bindTooltip(tip(read(f)),{sticky:true,direction:'top',className:'geo-tip',opacity:.96});
+      l.on({mouseover:function(e){if(e.target!==sel){e.target.setStyle(cfg.hover||{});e.target.bringToFront();}},
+        mouseout:function(e){if(e.target!==sel)g.resetStyle(e.target);},
+        click:function(e){L.DomEvent.stopPropagation(e);select(e.target,true);}});}});
+  function clearSelection(){if(sel){g.resetStyle(sel);sel=null;}}
+  function select(l,zoom){clearSelection();sel=l;
+    l.setStyle(Object.assign({},styleFor(l.feature),cfg.active||{}));if(l.bringToFront)l.bringToFront();
+    var b=l.getBounds();if(zoom)MapCore.focusBounds(b);
+    if(H.onSelect)H.onSelect(Object.assign(read(l.feature),{center:b.getCenter(),bounds:b}));}
+  function selectByCode(c,z){var t=null;g.eachLayer(function(l){if(l.feature&&String(read(l.feature).code)===String(c))t=l;});
+    if(t)select(t,z!==false);return !!t;}
+  function listFeatures(withCenter){var o=[];
+    g.eachLayer(function(l){if(!l.feature)return;var r=read(l.feature);
+      if(withCenter&&l.getBounds)r.center=l.getBounds().getCenter();o.push(r);});
+    return o.sort(function(a,b){return String(a.nameTh).localeCompare(String(b.nameTh),'th');});}
+  function setTheme(fn){theme=fn;
+    g.eachLayer(function(l){if(!l.feature)return;l.setStyle(styleFor(l.feature));
+      if(l.getTooltip&&l.getTooltip())l.setTooltipContent(tip(read(l.feature)));});
+    if(sel)sel.setStyle(Object.assign({},styleFor(sel.feature),cfg.active||{}));}
+  function buildLabels(){labels.clearLayers();if(!cfg.label_)return;
+    g.eachLayer(function(l){if(!l.feature||!l.getBounds)return;
+      L.marker(l.getBounds().getCenter(),{interactive:false,opacity:0})
+       .bindTooltip(read(l.feature).nameTh,{permanent:true,direction:'center',className:'nl'}).addTo(labels);});}
+  function setLabels(on,map){if(on&&cfg.label_)labels.addTo(map);else map.removeLayer(labels);}
+  async function load(){
+    if(loaded||loading)return g;loading=true;if(H.onLoadStart)H.onLoadStart(cfg);
+    try{var raw=await DataLoader.loadFirstAvailable(cfg.sources);
+      var geo=DataLoader.filterProvince(raw,CONFIG.province.code,CONFIG.province.nameTh);
+      if(!geo.features.length)throw new Error('ไม่พบข้อมูลจังหวัดลพบุรี');
+      g.addData(geo);loaded=true;buildLabels();if(H.onLoaded)H.onLoaded(listFeatures(true),g);}
+    catch(e){console.error('['+lvKey+']',e);if(H.onError)H.onError(e);}
+    finally{loading=false;if(H.onLoadEnd)H.onLoadEnd(cfg);}
+    return g;}
+  return {key:lvKey,config:cfg,layer:g,load:load,select:select,selectByCode:selectByCode,clearSelection:clearSelection,
+    listFeatures:listFeatures,setTheme:setTheme,setLabels:setLabels,isLoaded:function(){return loaded;},
+    getBounds:function(){return g.getBounds();}};
+}
+
+/* ══════ [8] APP → js/app.js ══════ */
+(function(){
+  function $(i){return document.getElementById(i);}
+  var ld=$('loader'),ldt=$('loaderText'),pend=0;
+  function setLoading(on,t){pend+=on?1:-1;if(pend<0)pend=0;if(t)ldt.textContent=t;ld.style.display=pend>0?'flex':'none';}
+  function toast(m,ms){var t=$('toast');t.textContent=m;t.style.display='block';
+    clearTimeout(t._h);t._h=setTimeout(function(){t.style.display='none';},ms||2800);}
+
+  AgriData.buildSeed(); WeatherData.seed();
+
+  var map=MapCore.init('map'),layers={},pBounds=null,dList=[],labelsOn=false;
+  var state={crop:'all',year:AgriData.getYears().slice(-1)[0],selected:null,tab:'agri'};
+  var brkA=[],brkT=[],ramp=[];
+  var wxLayer=L.layerGroup();
+
+  function cm(){return CROPS.filter(function(c){return c.key===state.crop;})[0]||CROPS[0];}
+  function quant(v){var a=v.filter(function(x){return x>0;}).sort(function(x,y){return x-y;}),b=[];
+    if(!a.length)return b;for(var i=1;i<ramp.length;i++)b.push(a[Math.floor(a.length*i/ramp.length)]||a[a.length-1]);return b;}
+  function computeBreaks(){ramp=cm().ramp;
+    brkA=quant(AgriData.ranking(state.year,state.crop).map(function(d){return d.value;}));
+    brkT=quant(AgriData.tamValues(state.year,state.crop));}
+  function colorOf(v,lv){var b=lv==='subdistrict'?brkT:brkA;if(!v)return '#e8ecea';
+    for(var i=0;i<b.length;i++)if(v<=b[i])return ramp[i];return ramp[ramp.length-1];}
+  function agriVal(i){return i.level==='subdistrict'
+    ?AgriData.value({year:state.year,tamCode:String(i.code),crop:state.crop})
+    :AgriData.value({year:state.year,ampCode:String(i.code),crop:state.crop});}
+  function themeFn(i){var v=agriVal(i);return {fillColor:colorOf(v,i.level),fillOpacity:v?.78:.25};}
+  function tooltipFn(i){
+    var s='<b>'+i.nameTh+'</b><br><u>'+cm().label+' · '+fmt(agriVal(i))+' ไร่</u>';
+    if(i.level==='subdistrict'){var w=wxFor(i);
+      if(w&&w.sum&&w.sum.metrics.temp)s+='<br><u>🌡 '+f1(w.sum.metrics.temp.avg)+'°C · 💧 '+
+        f1(w.sum.metrics.humidity?w.sum.metrics.humidity.avg:null)+'%</u>';}
+    return s;}
+
+  /* ---- weather resolve ---- */
+  function wxFor(info){
+    if(!info)return null;
+    var st=info.level==='subdistrict'?WeatherData.byTam(info.code):null,km=0,own=!!st;
+    if(!st&&info.center){var n=WeatherData.nearest(info.center.lat,info.center.lng);
+      if(n){st=n.station;km=n.km;}}
+    if(!st)return null;
+    return {station:st,own:own,km:km,sum:WeatherData.summarize(st)};
+  }
+  function dirTxt(d,deg){if(!d||d==='-')return '-';
+    return (DIR_TH[d]||d)+' ('+d+(deg!=null?' '+Math.round(deg)+'°':'')+')';}
+
+  /* ---- weather markers ---- */
+  function renderWxMarkers(){
+    wxLayer.clearLayers();
+    WeatherData.list().forEach(function(s){
+      var sm=WeatherData.summarize(s);
+      var t=sm&&sm.metrics.temp?f1(sm.metrics.temp.last)+'°':'—';
+      var ic=L.divIcon({className:'',html:'<div class="wsta'+(s.demo?' demo':'')+'">🛰 '+s.id+' · '+t+'</div>',iconSize:null});
+      var mk=L.marker([s.lat,s.lng],{icon:ic,title:s.name});
+      mk.bindTooltip(wxTip(s,sm),{direction:'top',className:'geo-tip',opacity:.96});
+      mk.on('click',function(e){L.DomEvent.stopPropagation(e);
+        if(s.tamCode&&layers.subdistrict.isLoaded())layers.subdistrict.selectByCode(s.tamCode,true);
+        else map.setView([s.lat,s.lng],12);});
+      wxLayer.addLayer(mk);
+    });
+  }
+  function wxTip(s,sm){
+    if(!sm)return '<b>'+s.name+'</b>';
+    var m=sm.metrics;
+    return '<b>'+s.name+'</b><br><u>'+(s.date||'')+(s.demo?' · จำลอง':'')+'</u>'+
+      (m.temp?'<br><u>🌡 '+f1(m.temp.avg)+'°C ('+f1(m.temp.min)+'–'+f1(m.temp.max)+')</u>':'')+
+      (m.humidity?'<br><u>💧 '+f1(m.humidity.avg)+'%</u>':'')+
+      (m.rain?'<br><u>🌧 '+f1(m.rain.sum,2)+' mm</u>':'')+
+      (m.wind?'<br><u>🌬 '+f1(m.wind.max,2)+' m/s '+(m.wind.dir||'')+'</u>':'');
+  }
+
+  /* ---- UI: agri ---- */
+  function renderCrops(){$('cropFilter').innerHTML=CROPS.map(function(c){var on=c.key===state.crop;
+    return '<button class="cb'+(on?' on':'')+'" data-crop="'+c.key+'"'+(on?' style="background:'+c.color+'"':'')+
+      '><span class="dot" style="background:'+c.color+'"></span>'+c.label+'</button>';}).join('');}
+  function renderYears(){var ys=AgriData.getYears();if(ys.indexOf(state.year)<0)state.year=ys[ys.length-1];
+    $('yearSel').innerHTML=ys.map(function(y){return '<option value="'+y+'"'+(y===state.year?' selected':'')+'>ปี '+y+'</option>';}).join('');
+    $('sumYear').textContent='ปี '+state.year;}
+  function renderSummary(){var s=AgriData.provinceSummary(state.year,state.crop);
+    $('statGrid').innerHTML='<div class="st"><b>'+fmtK(s.areaRai)+'</b><span>พื้นที่ปลูก (ไร่)</span></div>'+
+      '<div class="st"><b>'+fmtK(s.farmers)+'</b><span>เกษตรกร (ราย)</span></div>'+
+      '<div class="st"><b>'+fmtK(s.yieldTon)+'</b><span>ผลผลิต (ตัน)</span></div>'+
+      '<div class="st"><b>'+(s.areaRai?(s.yieldTon/s.areaRai).toFixed(2):'-')+'</b><span>เฉลี่ย (ตัน/ไร่)</span></div>';}
+  function renderRank(){var r=AgriData.ranking(state.year,state.crop),mx=r[0]?r[0].value:1,c=cm().color;
+    $('rankList').innerHTML=r.slice(0,12).map(function(d){
+      return '<li data-code="'+d.code+'"><span class="nm">'+d.name+'</span><span class="bar"><i style="width:'+
+        (mx?d.value/mx*100:0)+'%;background:'+c+'"></i></span><span class="vl">'+fmt(d.value)+'</span></li>';}).join('');}
+  function renderList(kw){kw=(kw||'').trim();
+    var it=kw?dList.filter(function(d){return String(d.nameTh).indexOf(kw)>-1;}):dList;
+    $('ampList').innerHTML=it.map(function(d){var v=AgriData.value({year:state.year,ampCode:String(d.code),crop:state.crop});
+      return '<li><button class="ai" data-code="'+d.code+'"><span>'+d.nameTh+'</span><em>'+fmt(v)+' ไร่</em></button></li>';}).join('')
+      ||'<li class="mu">ไม่พบอำเภอที่ค้นหา</li>';
+    if(state.selected)mark(state.selected.code);}
+  function mark(c){[].forEach.call(document.querySelectorAll('.ai'),function(b){b.classList.toggle('on',b.dataset.code===String(c));});}
+
+  /* ---- UI: weather panel ---- */
+  function renderWxPanel(){
+    var ls=WeatherData.list();
+    $('wxCount').textContent=ls.length+' สถานี';
+    $('wxList').innerHTML=ls.map(function(s){var sm=WeatherData.summarize(s),m=sm?sm.metrics:{};
+      return '<li data-id="'+s.id+'"><b>'+s.id+(s.demo?' <span class="badge b-info">จำลอง</span>':' <span class="badge b-ok">ข้อมูลจริง</span>')+'</b>'+
+        '<span>'+s.name+'</span><span>'+(s.tamName?'ต.'+s.tamName+(s.ampName?' อ.'+s.ampName:''):'ยังไม่ผูกตำบล')+
+        ' · '+(s.date||'-')+'</span><span>'+(m.temp?'🌡 '+f1(m.temp.avg)+'°C':'')+
+        (m.humidity?' · 💧 '+f1(m.humidity.avg)+'%':'')+(m.rain?' · 🌧 '+f1(m.rain.sum,2)+'mm':'')+'</span></li>';}).join('')
+      ||'<li class="mu">ยังไม่มีสถานี</li>';
+    var p=WeatherData.provinceSummary();
+    $('wxGrid').innerHTML=p?
+      '<div class="st"><b>'+f1(p.temp)+' °C</b><span>อุณหภูมิเฉลี่ย</span></div>'+
+      '<div class="st"><b>'+f1(p.humidity)+' %</b><span>ความชื้นเฉลี่ย</span></div>'+
+      '<div class="st"><b>'+f1(p.rain,2)+' mm</b><span>ฝนสะสมเฉลี่ย/สถานี</span></div>'+
+      '<div class="st"><b>'+f1(p.wind,2)+' m/s</b><span>ลมสูงสุด</span></div>'
+      :'<p class="mu">ยังไม่มีข้อมูล</p>';
+    var real=ls.filter(function(s){return !s.demo;});
+    $('wxSrc').innerHTML='<b>สถานีข้อมูลจริง:</b> '+(real.length?real.map(function(s){return s.id;}).join(', '):'—')+
+      '<br>ชีตที่รองรับ: Temperature · Humidity · Rain · Wind Speed';
+  }
+
+  /* ---- Information Panel ---- */
+  function renderInfo(s){
+    var q={year:state.year};
+    if(s.level==='subdistrict')q.tamCode=String(s.code);else q.ampCode=String(s.code);
+    var rows=AgriData.breakdown(q);
+    var tot=rows.reduce(function(a,r){a.areaRai+=r.areaRai;a.farmers+=r.farmers;a.yieldTon+=r.yieldTon;return a;},{areaRai:0,farmers:0,yieldTon:0});
+    var h='<div class="ih">'+s.nameTh+'</div><div class="is">'+s.levelLabel+(s.parent?' · อ.'+s.parent:'')+
+      ' · รหัส '+s.code+' · ปี '+state.year+'</div>'+
+      '<table class="it"><tr><th>ชื่ออังกฤษ</th><td>'+s.nameEn+'</td></tr>'+
+      '<tr><th>พิกัดกึ่งกลาง</th><td>'+s.center.lat.toFixed(4)+', '+s.center.lng.toFixed(4)+'</td></tr></table>';
+
+    /* ── เกษตร ── */
+    if(!rows.length)h+='<p class="mu" style="margin-top:10px">ไม่พบข้อมูลเกษตรในปี '+state.year+'</p>';
+    else{
+      var show=state.crop==='all'?rows:rows.filter(function(r){return r.crop===state.crop;});
+      if(!show.length)show=rows;
+      h+='<div class="sec">🌾 ข้อมูลเกษตร'+(state.crop==='all'?'':' — '+cm().label)+'</div><table class="at">'+
+        '<tr><th>ชนิดพืช</th><th>พื้นที่ (ไร่)</th><th>เกษตรกร</th><th>ผลผลิต (ตัน)</th></tr>'+
+        show.map(function(r){return '<tr><td><span class="cdot" style="background:'+r.color+'"></span>'+r.label+
+          '</td><td>'+fmt(r.areaRai)+'</td><td>'+fmt(r.farmers)+'</td><td>'+fmt(r.yieldTon)+'</td></tr>';}).join('')+
+        (state.crop==='all'?'<tr class="sm"><td>รวมทั้งหมด</td><td>'+fmt(tot.areaRai)+'</td><td>'+
+          fmt(tot.farmers)+'</td><td>'+fmt(tot.yieldTon)+'</td></tr>':'')+'</table>';
+    }
+
+    /* ── สภาพอากาศ ── */
+    var w=wxFor(s);
+    h+='<div class="sec">🌦 สภาพอากาศ'+(w&&w.sum?'<em>'+(w.sum.date||'')+'</em>':'')+'</div>';
+    if(!w||!w.sum)h+='<p class="mu" style="margin-top:8px">ยังไม่มีข้อมูลสถานี — อัปโหลดไฟล์ในแท็บ 🌦 อากาศ</p>';
+    else{
+      var m=w.sum.metrics,cards=[];
+      if(m.temp)cards.push(card(WX_METRIC.temp,f1(m.temp.avg)+' <u>°C</u>',
+        'ต่ำสุด '+f1(m.temp.min)+' · สูงสุด '+f1(m.temp.max),spark(m.temp.series,WX_METRIC.temp.color)));
+      if(m.humidity)cards.push(card(WX_METRIC.humidity,f1(m.humidity.avg)+' <u>%</u>',
+        'ต่ำสุด '+f1(m.humidity.min)+' · สูงสุด '+f1(m.humidity.max),spark(m.humidity.series,WX_METRIC.humidity.color)));
+      if(m.rain)cards.push(card(WX_METRIC.rain,f1(m.rain.sum,2)+' <u>mm</u>',
+        'สูงสุด/ช่วง '+f1(m.rain.max,2)+' mm',spark(m.rain.series,WX_METRIC.rain.color,128,26,true)));
+      if(m.wind)cards.push(card(WX_METRIC.wind,f1(m.wind.max,2)+' <u>m/s</u>',
+        'ทิศ '+dirTxt(m.wind.dir,m.wind.deg),spark(m.wind.series,WX_METRIC.wind.color)));
+      h+='<div class="wg">'+cards.join('')+'</div>';
+      h+='<div class="wsrc">📡 <b>'+w.sum.name+'</b> ('+w.sum.id+') '+
+        (w.sum.demo?'<span class="badge b-info">จำลอง</span>':'<span class="badge b-ok">ข้อมูลจริง</span>')+'<br>'+
+        (w.own?'<span class="badge b-ok">สถานีในตำบลนี้</span>'
+              :'<span class="badge b-warn">อ้างอิงสถานีใกล้เคียง ~'+f1(w.km)+' กม.</span>')+
+        ' · บันทึก '+(m.temp?m.temp.n:0)+' ช่วงเวลา · '+
+        new Date(m.temp?m.temp.t0:Date.now()).toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit'})+'–'+
+        new Date(m.temp?m.temp.t1:Date.now()).toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.</div>';
+      h+=advice(m,rows);
+    }
+    $('infoPanel').innerHTML=h;
+  }
+  function card(meta,val,sub,sv){
+    return '<div class="wc"><div class="wl">'+meta.icon+' '+meta.label+'</div>'+
+      '<div class="wv">'+val+'</div><div class="ws">'+sub+'</div>'+sv+'</div>';}
+
+  /** คำแนะนำเชิงกฎ (rule-based) — เตรียมต่อยอดเป็น AI ใน Phase ถัดไป */
+  function advice(m,crops){
+    var a=[];
+    if(m.humidity&&m.humidity.avg>=90)a.push('ความชื้นสูง '+f1(m.humidity.avg)+'% — เฝ้าระวังโรคเชื้อรา/ใบไหม้ ควรงดให้น้ำเพิ่มและระบายอากาศแปลง');
+    if(m.rain){ if(m.rain.sum>=35)a.push('ฝนสะสม '+f1(m.rain.sum,1)+' mm — เสี่ยงน้ำขังในแปลงลุ่ม ตรวจร่องระบายน้ำ');
+      else if(m.rain.sum<=0.5)a.push('ฝนน้อยมาก ('+f1(m.rain.sum,2)+' mm) — วางแผนให้น้ำเสริมโดยเฉพาะพืชผักและหน่อไม้ฝรั่ง'); }
+    if(m.temp&&m.temp.max>=35)a.push('อุณหภูมิสูงสุด '+f1(m.temp.max)+'°C — หลีกเลี่ยงพ่นสารช่วงบ่าย ควรทำช่วงเช้าหรือเย็น');
+    if(m.wind&&m.wind.max>=8)a.push('ลมแรง '+f1(m.wind.max,1)+' m/s — งดพ่นสารป้องกันการฟุ้งกระจาย ค้ำยันพืชทรงสูง');
+    if(m.temp&&m.humidity&&m.temp.avg>=24&&m.temp.avg<=30&&m.humidity.avg>=70&&(!m.rain||m.rain.sum<20))
+      a.push('สภาพโดยรวมเหมาะสมต่อการเจริญเติบโตของ'+(crops&&crops[0]?crops[0].label:'พืชหลัก')+'ในพื้นที่');
+    if(!a.length)return '';
+    return '<div class="advz"><b>💡 คำแนะนำเบื้องต้น</b><ul style="margin:5px 0 0;padding-left:16px">'+
+      a.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul></div>';
+  }
+
+  function renderLegend(){
+    var c=cm(),h='<div class="lgt">พื้นที่ปลูก'+(c.key==='all'?'รวม':' '+c.label)+' (ไร่)</div>',prev=0;
+    h+=ramp.map(function(col,i){var hi=brkA[i];
+      var lbl=(i===ramp.length-1||hi==null)?'> '+fmt(Math.round(prev)):fmt(Math.round(prev))+' – '+fmt(Math.round(hi));
+      prev=hi||prev;return '<div class="lgr"><span class="sw2" style="background:'+col+'"></span>'+lbl+'</div>';}).join('');
+    h+='<div class="lgr"><span class="sw2" style="background:#e8ecea"></span>ไม่มีข้อมูล</div>'+
+       '<div class="lgr" style="margin-top:6px;border-top:1px dashed #e3e9e3;padding-top:6px">'+
+       '<span class="sw" style="border-color:#0284c7;background:#fff"></span>🛰 สถานีตรวจอากาศ</div>';
+    $('legend').innerHTML=h;
+  }
+  function refresh(){
+    computeBreaks();
+    Object.keys(layers).forEach(function(k){if(CONFIG.levels[k].agri)layers[k].setTheme(themeFn);});
+    renderCrops();renderYears();renderSummary();renderRank();renderLegend();renderList($('searchInput').value);
+    renderWxPanel();renderWxMarkers();
+    $('agSrc').innerHTML='<b>แหล่งข้อมูลเกษตร:</b> '+AgriData.getSource()+
+      '<br>คอลัมน์: year, ampCode, ampName, tamCode, tamName, crop, areaRai, farmers, yieldTon';
+    if(state.selected)renderInfo(state.selected);
+  }
+
+  function buildLayer(k){
+    var cfg=CONFIG.levels[k];
+    var al=createAdminLayer(k,{tooltip:cfg.agri?tooltipFn:null,
+      onLoadStart:function(c){setLoading(true,'กำลังโหลด'+c.label+'...');},
+      onLoadEnd:function(){setLoading(false);},
+      onError:function(e){$('infoPanel').innerHTML='<p class="er"><b>โหลดข้อมูลไม่สำเร็จ</b><br>'+e.message+'</p>';},
+      onSelect:function(s){Object.keys(layers).forEach(function(x){if(x!==k)layers[x].clearSelection();});
+        state.selected=s;renderInfo(s);mark(k==='district'?s.code:'');
+        if(window.innerWidth<768)$('sidebar').classList.remove('open');},
+      onLoaded:function(f,g){
+        if(k==='province'){pBounds=g.getBounds();MapCore.focusBounds(pBounds);}
+        if(k==='district'){dList=f;$('ampCount').textContent=f.length+' อำเภอ';}
+        if(k==='subdistrict'){AgriData.deriveSubdistricts(f);WeatherData.bindTambons(f);}
+        if(labelsOn)al.setLabels(true,map);refresh();}});
+    layers[k]=al;MapCore.addOverlay(al.layer,cfg.label);
+    if(cfg.visibleByDefault){al.layer.addTo(map);al.load();}
+    return al;}
+
+  buildLayer('province');buildLayer('district');buildLayer('subdistrict');
+  MapCore.addOverlay(wxLayer,'🛰 สถานีตรวจอากาศ');wxLayer.addTo(map);
+  refresh();
+
+  map.on('overlayadd',function(e){Object.keys(layers).forEach(function(k){
+    if(layers[k].layer===e.layer&&!layers[k].isLoaded())layers[k].load();});});
+
+  /* ---- upload: weather ---- */
+  async function handleWx(files){
+    setLoading(true,'กำลังอ่านรายงานสภาพอากาศ...');
+    var okN=0,msg=[];
+    for(var i=0;i<files.length;i++){
+      try{
+        var f=files[i],r=await DataLoader.readFile(f),res;
+        if(r.kind==='wb')res=WeatherData.ingestWorkbook(r.data,f.name);
+        else res=WeatherData.ingestRows(r.data,f.name);
+        okN++;msg.push(f.name.slice(0,26)+' ('+res.rows+' จุด)');
+      }catch(e){msg.push('❌ '+files[i].name+': '+e.message);console.error(e);}
+    }
+    if(layers.subdistrict.isLoaded())WeatherData.bindTambons(layers.subdistrict.listFeatures(true));
+    refresh();setLoading(false);
+    toast(okN?'นำเข้าอากาศสำเร็จ '+okN+' ไฟล์ · '+msg.join(' | '):msg.join(' | '),4200);
+  }
+  /* ---- upload: agri ---- */
+  async function handleAg(file){
+    setLoading(true,'กำลังอ่านข้อมูลเกษตร...');
+    try{
+      var r=await DataLoader.readFile(file),rows;
+      if(r.kind==='wb'){var sn=r.data.SheetNames[0];rows=XLSX.utils.sheet_to_json(r.data.Sheets[sn],{defval:''});}
+      else rows=r.data;
+      var res=AgriData.importRows(rows,file.name);
+      if(layers.subdistrict.isLoaded())AgriData.deriveSubdistricts(layers.subdistrict.listFeatures(true));
+      state.selected=null;refresh();
+      toast('นำเข้าเกษตรสำเร็จ '+res.ok+' แถว'+(res.skip?' (ข้าม '+res.skip+')':''),3400);
+    }catch(e){toast('นำเข้าไม่สำเร็จ: '+e.message,4200);console.error(e);}
+    finally{setLoading(false);}
+  }
+  function dl(name,blob){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);},1500);}
+  function csvBlob(t){return new Blob(['\ufeff'+t],{type:'text/csv;charset=utf-8;'});}
+  function toCsv(rows){if(!rows.length)return '';var hd=Object.keys(rows[0]);
+    return hd.join(',')+'\n'+rows.map(function(r){return hd.map(function(k){
+      var v=String(r[k]==null?'':r[k]);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(',');}).join('\n');}
+
+  $('wxDrop').addEventListener('click',function(){$('wxFile').click();});
+  $('wxFile').addEventListener('change',function(e){if(e.target.files.length)handleWx(e.target.files);e.target.value='';});
+  $('agDrop').addEventListener('click',function(){$('agFile').click();});
+  $('agFile').addEventListener('change',function(e){if(e.target.files[0])handleAg(e.target.files[0]);e.target.value='';});
+  ['dragover','dragenter'].forEach(function(ev){document.body.addEventListener(ev,function(e){e.preventDefault();});});
+  document.body.addEventListener('drop',function(e){e.preventDefault();
+    var fs=e.dataTransfer.files;if(!fs||!fs.length)return;
+    var wx=/weatherlink|multisheet|weather/i.test(fs[0].name)||state.tab==='weather';
+    wx?handleWx(fs):handleAg(fs[0]);});
+
+  /* เทมเพลตสภาพอากาศ: XLSX 4 ชีต โครงเดียวกับไฟล์ต้นแบบ */
+  $('btnWxTpl').addEventListener('click',function(){
+    var d=new Date(),ds=d.toISOString().slice(0,10);
+    var times=[];for(var i=0;i<24;i++){var hh=('0'+i).slice(-2);times.push((d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear()+' '+hh+':45');}
+    var wb=XLSX.utils.book_new();
+    [['Temperature','ค่า (°C)'],['Humidity','ค่า (%)'],['Rain','ค่า (mm)']].forEach(function(s){
+      var aoa=[['เวลา',s[1]]].concat(times.map(function(t){return [t,''];}));
+      var ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=[{wch:20},{wch:12}];
+      XLSX.utils.book_append_sheet(wb,ws,s[0]);});
+    var aoaW=[['เวลา','ทิศทางลม','องศา (°)','ค่า (m/s)']].concat(times.map(function(t){return [t,'','',''];}));
+    var wsW=XLSX.utils.aoa_to_sheet(aoaW);wsW['!cols']=[{wch:20},{wch:11},{wch:10},{wch:12}];
+    XLSX.utils.book_append_sheet(wb,wsW,'Wind Speed');
+    XLSX.writeFile(wb,'ACG_WeatherLink_99_LB_multisheet_'+ds+'.xlsx');
+    toast('ดาวน์โหลดเทมเพลตสภาพอากาศแล้ว — เปลี่ยน 99 เป็นรหัสสถานีจริง');
+  });
+  $('btnWxExp').addEventListener('click',function(){
+    var rows=WeatherData.toRows();if(!rows.length)return toast('ไม่มีข้อมูลอากาศ');
+    dl('lopburi_weather_export.csv',csvBlob(toCsv(rows)));toast('Export '+rows.length+' แถว');});
+  $('btnAgTpl').addEventListener('click',function(){
+    var hd='year,ampCode,ampName,tamCode,tamName,crop,areaRai,farmers,yieldTon';
+    var ex=['2568,1604,ชัยบาดาล,160401,ลำนารายณ์,อ้อย,12500,568,143750',
+            '2568,1605,ท่าวุ้ง,,,ข้าว,62000,5166,38440'];
+    dl('lopburi_agri_template.csv',csvBlob(hd+'\n'+ex.join('\n')));toast('ดาวน์โหลดเทมเพลตเกษตรแล้ว');});
+  $('btnAgExp').addEventListener('click',function(){
+    var rows=AgriData.toRows();if(!rows.length)return toast('ไม่มีข้อมูล');
+    dl('lopburi_agri_export.csv',csvBlob(toCsv(rows)));toast('Export '+rows.length+' แถว');});
+
+  /* ---- events ---- */
+  [].forEach.call(document.querySelectorAll('.tb'),function(b){
+    b.addEventListener('click',function(){
+      state.tab=b.dataset.tab;
+      [].forEach.call(document.querySelectorAll('.tb'),function(x){x.classList.toggle('on',x===b);});
+      [].forEach.call(document.querySelectorAll('.pg'),function(p){p.classList.toggle('on',p.id==='pg-'+state.tab);});});});
+  $('cropFilter').addEventListener('click',function(e){var b=e.target.closest('.cb');if(!b)return;
+    state.crop=b.dataset.crop;refresh();});
+  $('yearSel').addEventListener('change',function(e){state.year=Number(e.target.value);refresh();});
+  $('rankList').addEventListener('click',function(e){var li=e.target.closest('li');
+    if(li)layers.district.selectByCode(li.dataset.code,true);});
+  $('ampList').addEventListener('click',function(e){var b=e.target.closest('.ai');
+    if(b)layers.district.selectByCode(b.dataset.code,true);});
+  $('wxList').addEventListener('click',function(e){var li=e.target.closest('li');if(!li||!li.dataset.id)return;
+    var s=WeatherData.list().filter(function(x){return x.id===li.dataset.id;})[0];if(!s)return;
+    if(s.tamCode&&layers.subdistrict.isLoaded())layers.subdistrict.selectByCode(s.tamCode,true);
+    else map.setView([s.lat,s.lng],12);});
+  $('searchInput').addEventListener('input',function(e){renderList(e.target.value);});
+  $('btnLabel').addEventListener('click',function(){labelsOn=!labelsOn;this.classList.toggle('on',labelsOn);
+    Object.keys(layers).forEach(function(k){layers[k].setLabels(labelsOn,map);});});
+  function clearAll(){Object.keys(layers).forEach(function(k){layers[k].clearSelection();});
+    state.selected=null;mark('');
+    $('infoPanel').innerHTML='<p class="mu">คลิกอำเภอ/ตำบลบนแผนที่เพื่อดูข้อมูล</p>';}
+  $('btnReset').addEventListener('click',function(){clearAll();
+    pBounds?MapCore.focusBounds(pBounds):map.setView(CONFIG.map.center,CONFIG.map.zoom);});
+  map.on('click',clearAll);
+  $('btnMenu').addEventListener('click',function(){$('sidebar').classList.toggle('open');});
+
+  window.__LB={map:map,layers:layers,AgriData:AgriData,WeatherData:WeatherData,state:state,refresh:refresh};
+})();
+</script>
+</body>
+</html>
